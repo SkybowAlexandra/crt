@@ -4,7 +4,5 @@
 			"path": "."
 		}
 	],
-	"settings": {
-		"files.encoding": "gb2312"
-	}
+	"settings": {}
 }
