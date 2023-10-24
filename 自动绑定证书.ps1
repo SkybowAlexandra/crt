@@ -115,6 +115,25 @@ function FindValuesNotInDictionary
     return $NotInDictionary
 }
 
+#检查端口是否被占用
+function Test-PortAvailability {
+    param (
+        [int]$Port
+    )
+    $endpoint = [System.Net.Sockets.TcpClient]::new()
+    try {
+        $endpoint.Connect("localhost", $Port)
+        $endpoint.Close()
+        return $false  # 端口已被占用
+    }
+    catch {
+        return $true  # 端口可用
+    }
+}
+
+
+
+
 function main
 {
     Write-Host "Runing ...."
@@ -157,6 +176,21 @@ function main
         $HostAndThumb[$cer.GetName()] = $cer.Thumbprint     
     }
 
+    #检查端口是否被占用
+    for ($x = 0; $x -lt $hostData.Length; $x = $x + 3)
+    {
+        if(Test-PortAvailability -Port $hostData[$x+1])
+        {
+            Write-Host "端口" $hostData[$x + 1] "可用"
+        }
+        else
+        {
+            Write-Host "端口" $hostData[$x+1] "不可用"
+        }
+    }
+
+
+
     $index=1
     Write-Host "绑定站点信息如下:" -ForegroundColor Green
     for ($x = 0; $x -lt $hostData.Length; $x = $x + 3)
@@ -167,11 +201,11 @@ function main
             Write-Host "该绑定域名找不到证书": $hostData[$x+2]
             continue
         }
-        
+     
         #根据域名获得指纹信息
         Write-Host $index ":" $hostData[$x+2]: $HostAndThumb["CN="+$hostData[$x + 2]]
-	    #New-WebBinding -Name $webname -Protocol https -Port $hostData[$x + 1] -IPAddress $hostData[$x] -HostHeader $hostData[$x + 2] -SslFlags 1
-	    #(Get-WebBinding -Name $webname -Port $hostData[$x + 1] -Protocol "https" -IPAddress $hostData[$x] -HostHeader $hostData[$x + 2]).AddSslCertificate($HostAndThumb["CN="+$hostData[$x + 2]], "my")
+	    New-WebBinding -Name $webname -Protocol https -Port $hostData[$x + 1] -IPAddress $hostData[$x] -HostHeader $hostData[$x + 2] -SslFlags 1
+	    (Get-WebBinding -Name $webname -Port $hostData[$x + 1] -Protocol "https" -IPAddress $hostData[$x] -HostHeader $hostData[$x + 2]).AddSslCertificate($HostAndThumb["CN="+$hostData[$x + 2]], "my")
         $index++
     }
     Write-Host "执行完毕" -ForegroundColor Green
