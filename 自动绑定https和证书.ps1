@@ -125,6 +125,7 @@ function Test-PortAvailability {
         $endpoint.Connect("localhost", $Port)
         $endpoint.Close()
         return $false  # 端口已被占用
+        exit(1) #直接结束脚本,不执行绑定
     }
     catch {
         return $true  # 端口可用
@@ -186,6 +187,7 @@ function main
         else
         {
             Write-Host "端口" $hostData[$x+1] "不可用"
+			exit()
         }
     }
 
